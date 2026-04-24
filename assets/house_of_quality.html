@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House of Quality — QFD Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #1a2540;
+  --navy2:  #253358;
+  --amber:  #b8872c;
+  --amber2: #d4a040;
+  --cream:  #f7f6f3;
+  --white:  #ffffff;
+  --bd:     #d5d0c8;
+  --bdl:    #ece8e0;
+  --text:   #252d3d;
+  --muted:  #6b7080;
+  --s9:     #1e4030;
+  --s3:     #2a5a42;
+  --s1:     #4a7a5a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.hdr{background:var(--navy);color:#fff;padding:18px 32px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:3px solid var(--amber);}
+.hdr-left{flex:1;min-width:0;}
+.hdr-title{font-family:'Crimson Pro',Georgia,serif;font-size:26px;font-weight:600;color:#fff;background:transparent;border:none;outline:none;width:100%;cursor:text;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-title::placeholder{color:rgba(255,255,255,.35);}
+.hdr-meta{display:flex;gap:0;margin-top:10px;border:1px solid rgba(255,255,255,.15);border-radius:4px;overflow:hidden;width:fit-content;max-width:100%;}
+.hdr-meta-cell{display:flex;flex-direction:column;padding:5px 12px;border-right:1px solid rgba(255,255,255,.12);}
+.hdr-meta-cell:last-child{border-right:none;}
+.hdr-meta-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.38);margin-bottom:3px;}
+.hdr-meta-inp{background:transparent;border:none;outline:none;color:rgba(255,255,255,.88);font-size:12px;font-family:inherit;min-width:100px;cursor:text;}
+.hdr-meta-inp[type=date]{color-scheme:dark;min-width:120px;}
+.hdr-meta-inp::placeholder{color:rgba(255,255,255,.25);}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:8px;letter-spacing:.07em;text-transform:uppercase;}
+.hdr-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;padding-top:2px;}
+.btn{padding:7px 15px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit;letter-spacing:.01em;}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.28);color:rgba(255,255,255,.9);}
+.btn-outline:hover{background:rgba(255,255,255,.09);}
+.btn-amber{background:var(--amber);color:#fff;}
+.btn-amber:hover{background:var(--amber2);}
+.btn-danger{background:transparent;border:1px solid rgba(229,115,115,.45);color:rgba(229,115,115,.9);}
+.btn-danger:hover{background:rgba(229,115,115,.12);}
+/* ── Confirm dialog ─────────────────────────────────────────────── */
+.dlg-backdrop{display:none;position:fixed;inset:0;background:rgba(10,15,30,.55);z-index:100;align-items:center;justify-content:center;}
+.dlg-backdrop.show{display:flex;}
+.dlg{background:#fff;border-radius:8px;padding:28px 28px 22px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.dlg-icon{font-size:28px;margin-bottom:12px;}
+.dlg-title{font-family:'Crimson Pro',Georgia,serif;font-size:20px;font-weight:600;color:var(--navy);margin-bottom:8px;}
+.dlg-body{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:22px;}
+.dlg-actions{display:flex;gap:8px;justify-content:flex-end;}
+.dlg-btn{padding:7px 16px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;border:1px solid var(--bd);background:transparent;color:var(--muted);}
+.dlg-btn:hover{background:var(--bdl);}
+.dlg-btn-red{background:#c0392b;color:#fff;border-color:#c0392b;}
+.dlg-btn-red:hover{background:#a93226;}
+
+/* ── Formula Panel ───────────────────────────────────────────────── */
+.formula-panel{background:#fff;border-bottom:1px solid var(--bd);}
+.formula-toggle{width:100%;padding:11px 32px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
+.formula-toggle:hover{color:var(--text);}
+.formula-toggle .arr{transition:transform .2s;font-size:12px;}
+.formula-toggle.open .arr{transform:rotate(180deg);}
+.f-body{display:none;padding:20px 32px 24px;border-top:1px solid var(--bdl);}
+.f-body.open{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+.f-card{background:var(--cream);border-radius:5px;padding:14px 16px;}
+.f-card-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);margin-bottom:8px;}
+.f-code{font-family:'Courier New',monospace;font-size:12px;color:var(--navy);background:#fff;border:1px solid var(--bdl);border-radius:3px;padding:7px 10px;margin:6px 0;}
+.f-note{font-size:12px;color:var(--muted);line-height:1.65;margin-top:5px;}
+
+/* ── Toolbar ─────────────────────────────────────────────────────── */
+.main{padding:22px 32px;}
+.toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.toolbar-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.btn-sm{padding:5px 11px;font-size:11px;border-radius:3px;background:transparent;border:1px solid var(--bd);color:var(--muted);cursor:pointer;font-family:inherit;transition:all .12s;}
+.btn-sm:hover{background:var(--bdl);color:var(--text);}
+.btn-sm-danger{border-color:#f5c6c6;color:#c0392b;}
+.btn-sm-danger:hover{background:#fff0f0;border-color:#e57373;}
+
+/* ── Table wrapper ────────────────────────────────────────────────── */
+.twrap{overflow-x:auto;border:1px solid var(--bd);border-radius:6px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.twrap::-webkit-scrollbar{height:5px;}
+.twrap::-webkit-scrollbar-track{background:var(--bdl);}
+.twrap::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px;}
+table{border-collapse:collapse;width:max-content;min-width:100%;}
+th,td{border:1px solid var(--bdl);vertical-align:middle;}
+
+/* ── Engineering attr headers ─────────────────────────────────────── */
+.th-attr{background:var(--navy);color:#fff;font-size:12px;font-weight:400;text-align:center;padding:0;min-width:92px;width:92px;}
+.th-attr-inner{display:flex;flex-direction:column;align-items:center;padding:8px 6px 6px;}
+.attr-name{background:transparent;border:none;color:#fff;font-size:12px;text-align:center;width:100%;font-family:inherit;outline:none;cursor:text;}
+.attr-name::placeholder{color:rgba(255,255,255,.25);}
+.attr-unit{background:transparent;border:none;color:rgba(255,255,255,.45);font-size:10px;text-align:center;width:100%;font-family:inherit;outline:none;cursor:text;margin-top:2px;}
+.attr-unit::placeholder{color:rgba(255,255,255,.18);}
+.attr-dir{font-size:15px;margin-top:4px;cursor:pointer;user-select:none;line-height:1;}
+.attr-del{background:transparent;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:12px;padding:2px 4px;border-radius:2px;transition:all .12s;margin-top:3px;font-family:inherit;}
+.attr-del:hover{color:#e57373;background:rgba(255,255,255,.08);}
+
+/* ── Row label columns ───────────────────────────────────────────── */
+.th-req{background:var(--cream);font-size:11px;text-align:left;padding:7px 12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:170px;border-right:2px solid var(--navy);}
+.th-imp{background:var(--cream);text-align:center;padding:7px 6px;font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:60px;width:60px;}
+.td-req{padding:5px 10px;min-width:170px;max-width:220px;border-right:2px solid var(--navy);}
+.req-inp{background:transparent;border:none;font-size:13px;font-family:inherit;color:var(--text);width:100%;outline:none;cursor:text;}
+.req-inp::placeholder{color:var(--muted);}
+.td-imp{text-align:center;width:60px;min-width:60px;}
+.imp-inp{width:100%;text-align:center;border:none;background:transparent;font-size:13px;font-weight:500;font-family:inherit;color:var(--navy);outline:none;padding:7px 2px;}
+
+/* ── Relationship cells ───────────────────────────────────────────── */
+.td-rel{text-align:center;cursor:pointer;min-width:92px;width:92px;height:38px;transition:background .1s;user-select:none;font-weight:500;font-size:15px;}
+.td-rel:hover{opacity:.85;}
+.r0{background:#fff;color:#d0ccc8;}
+.r0:hover{background:var(--bdl);}
+.r1{background:var(--s1);color:#c0e8cc;}
+.r3{background:var(--s3);color:#b0dcc0;}
+.r9{background:var(--s9);color:#9fd4b0;}
+
+/* ── Competitor / New Design ──────────────────────────────────────── */
+.th-comp{background:#243d60;color:rgba(255,255,255,.75);font-size:11px;text-align:center;padding:5px 6px;min-width:68px;width:68px;font-weight:400;}
+.th-nd{background:#1a3d3d;color:rgba(255,255,255,.85);font-size:11px;text-align:center;padding:5px 6px;min-width:68px;width:68px;font-weight:400;}
+.comp-name-inp{background:transparent;border:none;color:rgba(255,255,255,.8);font-size:11px;text-align:center;width:100%;font-family:inherit;outline:none;}
+.td-comp{text-align:center;min-width:68px;width:68px;padding:3px;}
+.comp-inp{width:100%;text-align:center;border:none;background:transparent;font-size:13px;font-family:inherit;color:var(--text);outline:none;padding:5px 2px;}
+.td-nd{text-align:center;min-width:68px;width:68px;padding:3px;background:#f0f9f9;}
+.td-del{text-align:center;width:28px;min-width:28px;background:var(--cream);}
+.row-del{background:transparent;border:none;color:var(--bd);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:2px;transition:all .12s;font-family:inherit;}
+.row-del:hover{color:#c0392b;background:#fff0f0;}
+
+/* ── Dividers ─────────────────────────────────────────────────────── */
+.div-navy td{height:3px;background:var(--navy);border:none !important;padding:0 !important;}
+.div-thin td{height:1px;background:var(--bd);border:none !important;padding:0 !important;}
+
+/* ── Results rows ─────────────────────────────────────────────────── */
+.td-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 12px;text-align:right;background:var(--cream);border-right:2px solid var(--navy);min-width:170px;}
+.td-imp-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 2px;text-align:center;background:var(--cream);}
+.td-score{text-align:center;padding:7px 5px;font-weight:500;font-size:13px;color:var(--navy);background:#eef0f6;min-width:92px;}
+.td-pct{text-align:center;padding:6px 5px;background:#f4f5f8;min-width:92px;}
+.pct-val{font-weight:500;font-size:12px;color:var(--navy);}
+.pct-bar-track{height:4px;background:var(--bdl);border-radius:2px;margin-top:3px;}
+.pct-bar-fill{height:4px;background:var(--amber);border-radius:2px;}
+.td-target{text-align:center;min-width:92px;background:#fffdf5;}
+.target-inp{width:100%;text-align:center;border:none;background:transparent;font-size:12px;font-family:inherit;color:var(--text);outline:none;padding:6px 3px;}
+.target-inp::placeholder{color:var(--bd);}
+.td-blank{background:var(--cream);}
+
+/* ── Correlation rows ─────────────────────────────────────────────── */
+.td-corr{text-align:center;cursor:pointer;min-width:92px;width:92px;height:30px;user-select:none;font-size:14px;font-weight:600;transition:background .1s;border-color:var(--bdl) !important;}
+.td-corr:hover{opacity:.8;}
+.cc-p{background:#dbeafe;color:#1e40af;}
+.cc-n{background:#fee2e2;color:#9b1c1c;}
+.cc-0{background:#fff;color:#ccc;}
+.cc-d{background:var(--cream);cursor:default;}
+.corr-lbl-cell{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:4px 10px;text-align:right;background:var(--cream);border-right:2px solid var(--navy);}
+
+/* ── Importance total ─────────────────────────────────────────────── */
+.imp-bar{height:3px;background:var(--amber);border-radius:0 0 3px 3px;}
+.imp-total{font-size:11px;padding:5px 14px;text-align:right;letter-spacing:.02em;}
+.imp-ok{color:#2d7a50;background:#f0faf4;}
+.imp-warn{color:#b05000;background:#fff8f0;}
+
+/* ── Legend ───────────────────────────────────────────────────────── */
+.legend{margin-top:22px;display:flex;gap:28px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--bdl);}
+.legend-sec{}
+.legend-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;}
+.legend-items{display:flex;gap:10px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);}
+.lsw{width:26px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+
+#fileInput{display:none;}
+@media print {
+  .hdr-actions{display:none!important;}
+  .toolbar{display:none!important;}
+  .formula-panel{display:none!important;}
+  .legend{display:none!important;}
+  body{background:#fff!important;}
+  .twrap{box-shadow:none!important;border:1px solid #ccc!important;overflow:visible!important;}
+  table{width:max-content!important;}
+  .hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .td-rel,.th-attr,.div-navy td,.hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  @page{margin:12mm;size:landscape;}
+}
+/* ── Print overlay ──────────────────────────────────────────────── */
+.print-overlay{display:none;position:fixed;inset:0;background:rgba(10,15,30,.6);z-index:200;align-items:center;justify-content:center;}
+.print-overlay.show{display:flex;}
+.print-card{background:#fff;border-radius:8px;padding:28px 28px 22px;max-width:360px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.print-spinner{width:36px;height:36px;border:3px solid var(--bdl);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<input type="file" id="fileInput" accept=".json" onchange="importJSON(event)">
+
+<!-- Confirm Dialog -->
+<div class="dlg-backdrop" id="dlgBackdrop">
+  <div class="dlg">
+    <div class="dlg-icon">⚠️</div>
+    <div class="dlg-title">Clear all data?</div>
+    <div class="dlg-body">This will permanently remove all customer requirements, engineering attributes, relationships, competitors, and targets. This action cannot be undone.</div>
+    <div class="dlg-actions">
+      <button class="dlg-btn" onclick="closeDlg()">Cancel</button>
+      <button class="dlg-btn-red dlg-btn" onclick="confirmClear()">Clear everything</button>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-left">
+    <input class="hdr-title" id="projectTitle" placeholder="Project Title" value="House of Quality — Car Door">
+    <div class="hdr-meta">
+      <div class="hdr-meta-cell">
+        <span class="hdr-meta-lbl">Product / Project</span>
+        <input class="hdr-meta-inp" id="metaProduct" placeholder="e.g. Car Door Redesign">
+      </div>
+      <div class="hdr-meta-cell">
+        <span class="hdr-meta-lbl">Team / Author</span>
+        <input class="hdr-meta-inp" id="metaTeam" placeholder="e.g. Engineering Team A">
+      </div>
+      <div class="hdr-meta-cell">
+        <span class="hdr-meta-lbl">Date</span>
+        <input class="hdr-meta-inp" id="metaDate" type="date">
+      </div>
+      <div class="hdr-meta-cell">
+        <span class="hdr-meta-lbl">Version</span>
+        <input class="hdr-meta-inp" id="metaVersion" placeholder="v1.0" style="min-width:60px;">
+      </div>
+    </div>
+    <div class="hdr-sub" id="hdrSub">Quality Function Deployment · Interactive Worksheet</div>
+  </div>
+  <div class="hdr-actions">
+    <button class="btn btn-outline" onclick="loadDefaultTemplate()" title="Reset to the built-in car door example">⟳ Default Template</button>
+    <button class="btn btn-danger" onclick="openDlg()" title="Remove all data">✕ Clear All</button>
+    <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">⬆ Import JSON</button>
+    <button class="btn btn-amber" onclick="exportJSON()">⬇ Export JSON</button>
+    <button class="btn btn-outline" id="printBtn" onclick="printSnapshot()" title="Save a snapshot of this worksheet as PDF or image">⎙ Print / Save</button>
+  </div>
+</div>
+
+<!-- Print overlay -->
+<div class="print-overlay" id="printOverlay">
+  <div class="print-card">
+    <div class="print-spinner"></div>
+    <div style="font-size:14px;font-weight:500;color:var(--navy);margin-bottom:6px;">Preparing snapshot…</div>
+    <div style="font-size:12px;color:var(--muted);">Your browser print dialog will open shortly.</div>
+  </div>
+</div>
+
+<!-- Formula Panel -->
+<div class="formula-panel">
+  <button class="formula-toggle" id="fToggle" onclick="toggleFormula()">
+    <span>Methodology &amp; Formulas <span style="font-weight:400;opacity:.55;font-size:10px;margin-left:8px;letter-spacing:.04em;text-transform:none;">— click to expand</span></span>
+    <span class="arr">▾</span>
+  </button>
+  <div class="f-body" id="fBody">
+    <div class="f-card">
+      <div class="f-card-title">① Customer Requirements</div>
+      <div class="f-note">Identify and list what customers value. Assign importance weights — they should sum to 100%. These drive every downstream calculation.</div>
+      <div class="f-code">Σ Importance Weights = 100</div>
+    </div>
+    <div class="f-card">
+      <div class="f-card-title">② Relationship Matrix</div>
+      <div class="f-note">How strongly does each engineering attribute satisfy each customer requirement? Click cells to cycle through values. Leave blank if no relationship exists.</div>
+      <div class="f-code">9 = Strong &nbsp; 3 = Moderate &nbsp; 1 = Weak &nbsp; · = None</div>
+      <div class="f-note">The 9-3-1 geometric scale amplifies strong links and reduces noise from weak ones.</div>
+    </div>
+    <div class="f-card">
+      <div class="f-card-title">③ Priority Score</div>
+      <div class="f-note">For each engineering attribute column j, multiply every relationship score by its row's importance weight, then sum. Higher scores = higher engineering priority.</div>
+      <div class="f-code">Priority(j) = Σ [ Importance(i) × Relationship(i,j) ]</div>
+    </div>
+    <div class="f-card">
+      <div class="f-card-title">④ Relative Weight</div>
+      <div class="f-note">Normalize priority scores to percentages. This tells engineers exactly where to allocate effort and investment across all attributes.</div>
+      <div class="f-code">Weight(j) = Priority(j) ÷ Σ Priority × 100%</div>
+    </div>
+    <div class="f-card">
+      <div class="f-card-title">⑤ Competitive Evaluation</div>
+      <div class="f-note">Rate each competitor and the new design against customer requirements on a 1–7 scale. Reveals gaps and differentiating opportunities.</div>
+      <div class="f-code">1 = Not addressed &nbsp;&nbsp; 7 = Fully satisfied</div>
+    </div>
+    <div class="f-card">
+      <div class="f-card-title">⑥ Correlation Matrix (Roof)</div>
+      <div class="f-note">Shows how engineering attributes interact. Critical for spotting trade-offs: improving one spec may help or harm another. Negative correlations demand design innovation.</div>
+      <div class="f-code">+ = Positive synergy &nbsp;&nbsp; − = Conflict / trade-off</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="toolbar">
+    <span class="toolbar-lbl">Add:</span>
+    <button class="btn-sm" onclick="addReq()">+ Customer Requirement</button>
+    <button class="btn-sm" onclick="addAttr()">+ Engineering Attribute</button>
+    <button class="btn-sm" onclick="addComp()">+ Competitor</button>
+  </div>
+
+  <div class="twrap" id="twrap"></div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-sec">
+      <div class="legend-title">Relationship Strength</div>
+      <div class="legend-items">
+        <div class="legend-item"><div class="lsw" style="background:var(--s9);color:#9fd4b0">9</div>Strong</div>
+        <div class="legend-item"><div class="lsw" style="background:var(--s3);color:#b0dcc0">3</div>Moderate</div>
+        <div class="legend-item"><div class="lsw" style="background:var(--s1);color:#c0e8cc">1</div>Weak</div>
+        <div class="legend-item"><div class="lsw" style="background:#fff;border:1px solid var(--bdl);color:#ccc">·</div>None</div>
+      </div>
+    </div>
+    <div class="legend-sec">
+      <div class="legend-title">Correlation (Roof)</div>
+      <div class="legend-items">
+        <div class="legend-item"><div class="lsw" style="background:#dbeafe;color:#1e40af">+</div>Positive</div>
+        <div class="legend-item"><div class="lsw" style="background:#fee2e2;color:#9b1c1c">−</div>Negative</div>
+        <div class="legend-item"><div class="lsw" style="background:#fff;border:1px solid var(--bdl);color:#ccc">·</div>None</div>
+      </div>
+    </div>
+    <div class="legend-sec">
+      <div class="legend-title">Engineering Direction</div>
+      <div class="legend-items">
+        <div class="legend-item">↑ Maximize</div>
+        <div class="legend-item">↓ Minimize</div>
+        <div class="legend-item">● Target value</div>
+      </div>
+    </div>
+    <div class="legend-sec">
+      <div class="legend-title">Competitive Rating</div>
+      <div class="legend-items">
+        <div class="legend-item">1 = Not addressed</div>
+        <div class="legend-item">4 = Partially met</div>
+        <div class="legend-item">7 = Fully satisfied</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────────────────────────────
+let S = {
+  customerReqs: [
+    {id:0,name:"Easy to Open & Close",importance:15},
+    {id:1,name:"Stays Open on Hill",importance:10},
+    {id:2,name:"Does Not Leak in Rain",importance:35},
+    {id:3,name:"Isolates from Road Noise",importance:20},
+    {id:4,name:"Crash Protection",importance:20}
+  ],
+  engineeringAttrs: [
+    {id:0,name:"Door Weight",unit:"lbs",dir:"↓"},
+    {id:1,name:"Hinge Stiffness",unit:"N/m",dir:"↑"},
+    {id:2,name:"Door Seal Tightness",unit:"mm",dir:"↑"},
+    {id:3,name:"Window Seal Tightness",unit:"mm",dir:"↑"}
+  ],
+  relationships: {"0-0":9,"0-1":3,"1-1":9,"2-2":9,"2-3":9,"3-1":1,"3-2":9,"3-3":9,"4-0":9},
+  correlations:  {"0-1":-1,"1-2":1,"2-3":1},
+  competitors: [
+    {id:0,name:"Competitor A",ratings:{"0":7,"1":6,"2":7,"3":4,"4":4}},
+    {id:1,name:"Competitor B",ratings:{"0":4,"1":7,"2":6,"3":7,"4":7}}
+  ],
+  newDesign: {"0":4,"1":4,"2":4,"3":4,"4":4},
+  targets: {}
+};
+let _nextId = 50;
+const uid = () => ++_nextId;
+
+// ── Calculations ────────────────────────────────────────────────────────────
+function calcScores() {
+  const sc = {};
+  S.engineeringAttrs.forEach(a => {
+    sc[a.id] = S.customerReqs.reduce((sum, r) => sum + (r.importance||0) * (S.relationships[r.id+"-"+a.id]||0), 0);
+  });
+  return sc;
+}
+function calcPcts(sc) {
+  const tot = Object.values(sc).reduce((a,b)=>a+b,0);
+  const pct = {};
+  S.engineeringAttrs.forEach(a => { pct[a.id] = tot>0 ? ((sc[a.id]/tot)*100).toFixed(1) : "0.0"; });
+  return {pct, tot};
+}
+function sumImportance() { return S.customerReqs.reduce((a,r)=>a+(Number(r.importance)||0),0); }
+
+// ── Render ──────────────────────────────────────────────────────────────────
+function render() {
+  const wrap = document.getElementById("twrap");
+  const sc = calcScores();
+  const {pct} = calcPcts(sc);
+  const maxPct = Math.max(0, ...Object.values(pct).map(v=>parseFloat(v)));
+  const nA = S.engineeringAttrs.length;
+  const nC = S.competitors.length;
+  // total columns = 1(req) + 1(imp) + nA(attrs) + nC(comps) + 1(nd) + 1(del) = nA+nC+4
+  const totCols = nA + nC + 4;
+
+  let h = "<table><tbody>";
+
+  // ── Correlation (Roof) rows ─────────────────────────────────────────────
+  if (nA > 1) {
+    for (let level = nA-1; level >= 1; level--) {
+      h += "<tr>";
+      // Left stub: req name + importance columns as rowspan cells on first (top) row
+      if (level === nA-1) {
+        h += `<td rowspan="${nA-1}" class="corr-lbl-cell">Correlation<br>Roof</td>`;
+        h += `<td rowspan="${nA-1}" style="background:var(--cream);min-width:60px;"></td>`;
+      }
+      // Engineering attr columns
+      for (let j = 0; j < nA; j++) {
+        const i = j - level;
+        if (i >= 0 && i < nA) {
+          const aI = S.engineeringAttrs[i], aJ = S.engineeringAttrs[j];
+          const k = Math.min(aI.id,aJ.id)+"-"+Math.max(aI.id,aJ.id);
+          const v = S.correlations[k]||0;
+          const cls = v===1?"cc-p":v===-1?"cc-n":"cc-0";
+          const sym = v===1?"+":v===-1?"−":"·";
+          h += `<td class="td-corr ${cls}" onclick="cycleCorr('${k}')" title="${esc(aI.name)} ↔ ${esc(aJ.name)}">${sym}</td>`;
+        } else {
+          h += `<td class="td-corr cc-d"></td>`;
+        }
+      }
+      // Competitor + new design + delete stubs
+      for (let x=0; x<nC+2; x++) h += `<td style="background:var(--cream);border-color:var(--bdl)"></td>`;
+      h += "</tr>";
+    }
+  }
+
+  // ── Section divider ─────────────────────────────────────────────────────
+  h += `<tr class="div-navy"><td colspan="${totCols}"></td></tr>`;
+
+  // ── Engineering attribute header row ─────────────────────────────────────
+  h += "<tr>";
+  h += `<th class="th-req">Customer Requirement</th>`;
+  h += `<th class="th-imp">Imp.%</th>`;
+  S.engineeringAttrs.forEach(a => {
+    h += `<th class="th-attr">
+      <div class="th-attr-inner">
+        <input class="attr-name" value="${esc(a.name)}" placeholder="Attribute" onchange="U.attrName(${a.id},this.value)" title="Edit attribute name">
+        <input class="attr-unit" value="${esc(a.unit||'')}" placeholder="unit" onchange="U.attrUnit(${a.id},this.value)" title="Edit unit">
+        <div class="attr-dir" onclick="U.dir(${a.id})" title="Click to change direction">${a.dir||'↑'}</div>
+        <button class="attr-del" onclick="U.delAttr(${a.id})" title="Remove attribute">✕</button>
+      </div></th>`;
+  });
+  S.competitors.forEach(c => {
+    h += `<th class="th-comp"><input class="comp-name-inp" value="${esc(c.name)}" onchange="U.compName(${c.id},this.value)"><br><span style="font-size:9px;opacity:.45;display:block;margin-top:2px">(1–7)</span></th>`;
+  });
+  h += `<th class="th-nd">New Design<br><span style="font-size:9px;opacity:.55;display:block;margin-top:2px">(1–7)</span></th>`;
+  h += `<th style="background:var(--navy);width:28px;min-width:28px;"></th>`;
+  h += "</tr>";
+
+  // ── Customer requirement rows ─────────────────────────────────────────────
+  S.customerReqs.forEach(r => {
+    h += "<tr>";
+    h += `<td class="td-req"><input class="req-inp" value="${esc(r.name)}" placeholder="Requirement" onchange="U.reqName(${r.id},this.value)"></td>`;
+    h += `<td class="td-imp"><input class="imp-inp" type="number" min="0" max="100" step="1" value="${r.importance}" onchange="U.imp(${r.id},this.value)"></td>`;
+    S.engineeringAttrs.forEach(a => {
+      const v = S.relationships[r.id+"-"+a.id]||0;
+      const cls = v===9?"r9":v===3?"r3":v===1?"r1":"r0";
+      h += `<td class="td-rel ${cls}" onclick="U.rel(${r.id},${a.id})" title="Click to set relationship strength">${v||"·"}</td>`;
+    });
+    S.competitors.forEach(c => {
+      const v = (c.ratings&&c.ratings[r.id])||"";
+      h += `<td class="td-comp"><input class="comp-inp" type="number" min="1" max="7" step="1" value="${v}" placeholder="–" onchange="U.compR(${c.id},${r.id},this.value)"></td>`;
+    });
+    const ndv = S.newDesign[r.id]||"";
+    h += `<td class="td-nd"><input class="comp-inp" type="number" min="1" max="7" step="1" value="${ndv}" placeholder="–" onchange="U.nd(${r.id},this.value)"></td>`;
+    h += `<td class="td-del"><button class="row-del" onclick="U.delReq(${r.id})" title="Remove row">✕</button></td>`;
+    h += "</tr>";
+  });
+
+  // ── Section divider ─────────────────────────────────────────────────────
+  h += `<tr class="div-navy"><td colspan="${totCols}"></td></tr>`;
+
+  // ── Priority Score row ───────────────────────────────────────────────────
+  h += "<tr>";
+  h += `<td class="td-lbl" colspan="1">Priority Score</td>`;
+  h += `<td class="td-imp-lbl"></td>`;
+  S.engineeringAttrs.forEach(a => { h += `<td class="td-score">${sc[a.id]||0}</td>`; });
+  for (let x=0; x<nC+2; x++) h += `<td class="td-blank"></td>`;
+  h += "</tr>";
+
+  // ── Relative Weight row ──────────────────────────────────────────────────
+  h += "<tr>";
+  h += `<td class="td-lbl" colspan="1">Relative Weight</td>`;
+  h += `<td class="td-imp-lbl"></td>`;
+  S.engineeringAttrs.forEach(a => {
+    const p = pct[a.id]||"0.0";
+    const bw = maxPct>0 ? Math.round((parseFloat(p)/maxPct)*100) : 0;
+    h += `<td class="td-pct"><div class="pct-val">${p}%</div><div class="pct-bar-track"><div class="pct-bar-fill" style="width:${bw}%"></div></div></td>`;
+  });
+  for (let x=0; x<nC+2; x++) h += `<td class="td-blank"></td>`;
+  h += "</tr>";
+
+  // ── Design Target row ────────────────────────────────────────────────────
+  h += "<tr>";
+  h += `<td class="td-lbl" colspan="1">Design Target</td>`;
+  h += `<td class="td-imp-lbl"></td>`;
+  S.engineeringAttrs.forEach(a => {
+    const v = S.targets[a.id]||"";
+    h += `<td class="td-target"><input class="target-inp" value="${esc(v)}" placeholder="e.g. ≤ 20 lbs" onchange="U.target(${a.id},this.value)"></td>`;
+  });
+  for (let x=0; x<nC+2; x++) h += `<td class="td-blank"></td>`;
+  h += "</tr>";
+
+  h += "</tbody></table>";
+  wrap.innerHTML = h;
+
+  // Importance total bar
+  const tot = sumImportance();
+  let bar = wrap.querySelector(".imp-total-wrap");
+  if (!bar) {
+    bar = document.createElement("div"); bar.className = "imp-total-wrap";
+    wrap.appendChild(bar);
+  }
+  bar.className = "imp-total-wrap";
+  bar.innerHTML = `<div class="imp-total ${tot===100?"imp-ok":"imp-warn"}">Importance total: <strong>${tot}%</strong>${tot===100?" ✓":" — should sum to 100%"}</div><div class="imp-bar" style="width:${Math.min(tot,100)}%"></div>`;
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Mutations ────────────────────────────────────────────────────────────────
+const U = {
+  rel(rid,aid) {
+    const k=rid+"-"+aid, c=S.relationships[k]||0;
+    const n=c===0?9:c===9?3:c===3?1:0;
+    if(n===0) delete S.relationships[k]; else S.relationships[k]=n;
+    render();
+  },
+  corr(k) { return cycleCorr(k); },
+  dir(aid) {
+    const a=S.engineeringAttrs.find(x=>x.id===aid);
+    if(!a)return;
+    const d=["↑","↓","●"]; a.dir=d[(d.indexOf(a.dir||"↑")+1)%3]; render();
+  },
+  attrName(id,v){ const a=S.engineeringAttrs.find(x=>x.id===id); if(a)a.name=v; },
+  attrUnit(id,v){ const a=S.engineeringAttrs.find(x=>x.id===id); if(a)a.unit=v; },
+  reqName(id,v) { const r=S.customerReqs.find(x=>x.id===id); if(r)r.name=v; },
+  imp(id,v)     { const r=S.customerReqs.find(x=>x.id===id); if(r){r.importance=Number(v)||0;render();} },
+  compName(id,v){ const c=S.competitors.find(x=>x.id===id); if(c)c.name=v; },
+  compR(cid,rid,v){ const c=S.competitors.find(x=>x.id===cid); if(c){if(!c.ratings)c.ratings={}; if(!v)delete c.ratings[rid]; else c.ratings[rid]=Number(v);} },
+  nd(rid,v)    { if(!v)delete S.newDesign[rid]; else S.newDesign[rid]=Number(v); },
+  target(aid,v){ if(!v)delete S.targets[aid]; else S.targets[aid]=v; },
+  delReq(id) {
+    S.customerReqs=S.customerReqs.filter(r=>r.id!==id);
+    for(const k of Object.keys(S.relationships)){ if(k.startsWith(id+"-")) delete S.relationships[k]; }
+    render();
+  },
+  delAttr(id) {
+    S.engineeringAttrs=S.engineeringAttrs.filter(a=>a.id!==id);
+    for(const k of Object.keys(S.relationships)){ if(k.endsWith("-"+id)) delete S.relationships[k]; }
+    for(const k of Object.keys(S.correlations)){ const [a,b]=k.split("-"); if(Number(a)===id||Number(b)===id) delete S.correlations[k]; }
+    render();
+  }
+};
+
+function cycleCorr(k) {
+  const c=S.correlations[k]||0;
+  const n=c===0?1:c===1?-1:0;
+  if(n===0) delete S.correlations[k]; else S.correlations[k]=n;
+  render();
+}
+
+function addReq() {
+  S.customerReqs.push({id:uid(),name:"New Requirement",importance:0}); render();
+}
+function addAttr() {
+  S.engineeringAttrs.push({id:uid(),name:"New Attribute",unit:"",dir:"↑"}); render();
+}
+function addComp() {
+  const n=String.fromCharCode(65+S.competitors.length);
+  S.competitors.push({id:uid(),name:"Competitor "+n,ratings:{}}); render();
+}
+
+// ── Import / Export ──────────────────────────────────────────────────────────
+function exportJSON() {
+  const title   = document.getElementById("projectTitle").value;
+  const product = document.getElementById("metaProduct").value;
+  const team    = document.getElementById("metaTeam").value;
+  const date    = document.getElementById("metaDate").value;
+  const version = document.getElementById("metaVersion").value;
+  const data = {title, meta:{product,team,date,version}, ...S};
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = title.replace(/[^a-z0-9]/gi,"-").toLowerCase()+".json";
+  a.click();
+}
+function importJSON(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if(d.title) document.getElementById("projectTitle").value = d.title;
+      if(d.meta) {
+        if(d.meta.product) document.getElementById("metaProduct").value = d.meta.product;
+        if(d.meta.team)    document.getElementById("metaTeam").value    = d.meta.team;
+        if(d.meta.date)    document.getElementById("metaDate").value    = d.meta.date;
+        if(d.meta.version) document.getElementById("metaVersion").value = d.meta.version;
+      }
+      if(d.customerReqs)    S.customerReqs    = d.customerReqs;
+      if(d.engineeringAttrs)S.engineeringAttrs= d.engineeringAttrs;
+      if(d.relationships)   S.relationships   = d.relationships;
+      if(d.correlations)    S.correlations    = d.correlations;
+      if(d.competitors)     S.competitors     = d.competitors;
+      if(d.newDesign)       S.newDesign       = d.newDesign;
+      if(d.targets)         S.targets         = d.targets;
+      render();
+      flash("✓ Project imported successfully", "#7df5b0");
+    } catch(err) { alert("Could not read file: "+err.message); }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+}
+
+// ── Default Template ─────────────────────────────────────────────────────────
+const DEFAULT_STATE = {
+  customerReqs: [
+    {id:0,name:"Easy to Open & Close",importance:15},
+    {id:1,name:"Stays Open on Hill",importance:10},
+    {id:2,name:"Does Not Leak in Rain",importance:35},
+    {id:3,name:"Isolates from Road Noise",importance:20},
+    {id:4,name:"Crash Protection",importance:20}
+  ],
+  engineeringAttrs: [
+    {id:0,name:"Door Weight",unit:"lbs",dir:"↓"},
+    {id:1,name:"Hinge Stiffness",unit:"N/m",dir:"↑"},
+    {id:2,name:"Door Seal Tightness",unit:"mm",dir:"↑"},
+    {id:3,name:"Window Seal Tightness",unit:"mm",dir:"↑"}
+  ],
+  relationships: {"0-0":9,"0-1":3,"1-1":9,"2-2":9,"2-3":9,"3-1":1,"3-2":9,"3-3":9,"4-0":9},
+  correlations:  {"0-1":-1,"1-2":1,"2-3":1},
+  competitors: [
+    {id:0,name:"Competitor A",ratings:{"0":7,"1":6,"2":7,"3":4,"4":4}},
+    {id:1,name:"Competitor B",ratings:{"0":4,"1":7,"2":6,"3":7,"4":7}}
+  ],
+  newDesign: {"0":4,"1":4,"2":4,"3":4,"4":4},
+  targets: {"0":"≤ 18 lbs","1":"≥ 8 N/m","2":"≤ 0.5 mm","3":"≤ 0.3 mm"}
+};
+function loadDefaultTemplate() {
+  document.getElementById("projectTitle").value = "House of Quality — Car Door";
+  document.getElementById("metaProduct").value  = "Automotive Car Door";
+  document.getElementById("metaTeam").value     = "";
+  document.getElementById("metaDate").value     = new Date().toISOString().slice(0,10);
+  document.getElementById("metaVersion").value  = "v1.0";
+  S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  _nextId = 50;
+  render();
+  flash("✓ Default template loaded", "#7df5b0");
+}
+
+// ── Clear All (with dialog) ──────────────────────────────────────────────────
+function openDlg()    { document.getElementById("dlgBackdrop").classList.add("show"); }
+function closeDlg()   { document.getElementById("dlgBackdrop").classList.remove("show"); }
+function confirmClear() {
+  closeDlg();
+  document.getElementById("projectTitle").value = "";
+  document.getElementById("metaProduct").value  = "";
+  document.getElementById("metaTeam").value     = "";
+  document.getElementById("metaDate").value     = "";
+  document.getElementById("metaVersion").value  = "";
+  S = {customerReqs:[],engineeringAttrs:[],relationships:{},correlations:{},competitors:[],newDesign:{},targets:{}};
+  render();
+  flash("All data cleared", "rgba(255,180,150,.9)");
+}
+// Close dialog on backdrop click
+document.getElementById("dlgBackdrop").addEventListener("click", function(e){ if(e.target===this) closeDlg(); });
+
+// ── Flash notification ───────────────────────────────────────────────────────
+function flash(msg, color) {
+  const el = document.getElementById("hdrSub");
+  const orig = el.textContent;
+  el.textContent = msg; el.style.color = color;
+  setTimeout(()=>{ el.textContent = orig; el.style.color = ""; }, 2600);
+}
+
+// ── Print / Snapshot ─────────────────────────────────────────────────────────
+function printSnapshot() {
+  // Show spinner briefly so user gets feedback, then trigger browser print
+  const overlay = document.getElementById("printOverlay");
+  const btn = document.getElementById("printBtn");
+  overlay.classList.add("show");
+  btn.disabled = true;
+
+  // Give the overlay a frame to render, then print
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      overlay.classList.remove("show");
+      btn.disabled = false;
+      window.print();
+    }, 320);
+  });
+}
+
+// ── Formula toggle ───────────────────────────────────────────────────────────
+function toggleFormula() {
+  document.getElementById("fToggle").classList.toggle("open");
+  document.getElementById("fBody").classList.toggle("open");
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.getElementById("metaDate").value = new Date().toISOString().slice(0,10);
+document.getElementById("metaProduct").value = "Automotive Car Door";
+render();
+</script>
+</body>
+</html>
