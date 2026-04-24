@@ -60,9 +60,9 @@ The resulting `.json` file imports directly into the HTML tool via **⬆ Import 
 qfd-house-of-quality/
 ├── SKILL.md                   ← Skill definition: triggers, instructions, JSON schema
 ├── README.md                  ← This file
-└── docs/
-    ├── house_of_quality.html  ← Complete self-contained interactive QFD tool
-    └── template.json          ← Car door example — importable reference dataset
+├── index.html                 ← Complete self-contained interactive QFD tool
+└── template.json              ← Car door example — importable reference dataset
+
 ```
 
 ---
@@ -91,7 +91,7 @@ The schema used by both the tool's export and the skill's generation:
 }
 ```
 
-See `docs/template.json` for a complete working example (car door).
+See `template.json` for a complete working example (car door).
 
 ---
 
@@ -113,13 +113,13 @@ Correlation  : +1 (synergy)  ·  −1 (trade-off)
 
 ### As a Claude skill
 
-Copy the `qfd-house-of-quality/` folder into your Claude skills directory (e.g. `/mnt/skills/user/`). Claude picks it up automatically from `SKILL.md`.
+Copy the `house-of-quality/` folder into your Claude skills directory (e.g. `/mnt/skills/user/`). Claude picks it up automatically from `SKILL.md`.
 
 **Trigger phrases:** "create a House of Quality", "QFD matrix", "voice of the customer worksheet", "generate QFD data for [product]", etc.
 
 ### Standalone (no Claude required)
 
-Open `docs/house_of_quality.html` in any modern browser. Use `docs/template.json` as a starting point — edit it, then import via **⬆ Import JSON**.
+Open `index.html` in any modern browser. Use `template.json` as a starting point — edit it, then import via **⬆ Import JSON**.
 
 ---
 
